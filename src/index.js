@@ -1,12 +1,33 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
-import * as serviceWorker from './serviceWorker';
+import React from 'react'
+import ReactDOM from 'react-dom'
+import App from './components/App'
+import SignIn from './components/SignIn'
+import SignUp from './components/SignUp'
+import { BrowserRouter, Route } from 'react-router-dom';
+import {Provider} from 'react-redux'
+import {createStore} from 'redux'
+import reducer from './reducers'
+import { firebaseApp } from './firebase'
+import {logUser, logoutUser} from './actions'
 
-ReactDOM.render(<App />, document.getElementById('root'));
+const store = createStore(reducer);
+firebaseApp.auth().onAuthStateChanged(user => {
+    if(user){
+        console.log('user has signed in or up', user)
+        store.dispatch(logUser(user.email))
+    }else{
+        console.log('user has signed out or still need to sign in')
+        store.dispatch(logoutUser())
+    }
+})
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: http://bit.ly/CRA-PWA
-serviceWorker.unregister();
+ReactDOM.render(
+    <Provider store={store}>
+    <BrowserRouter>
+        <div>
+            <Route exact path="/" component={App} />
+            <Route path="/signin" component={SignIn} />
+            <Route path="/signup" component={SignUp} />
+        </div>
+    </BrowserRouter></Provider>, document.getElementById('root')
+)
